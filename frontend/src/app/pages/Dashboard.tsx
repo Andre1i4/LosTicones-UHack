@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { ArrowRight, Calendar, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../translations';
-import { NEXT_MATCH, RECENT_ANALYSES } from '../data/mockData';
+
 import { FormRow } from '../components/WDLPill';
 import { OpponentCrest } from '../components/ClubCrest';
 import { ProgressStat, StatRow } from '../components/StatRow';
@@ -11,7 +11,7 @@ import { apiClient } from '../../services/api';
 import type { Match, MatchSummary } from '../../services/api';
 
 export function Dashboard() {
-  const { colors, language } = useApp();
+  const { colors, language, selectMatch } = useApp();
   const t = useT(language);
   const navigate = useNavigate();
   const gold = colors.gold;
@@ -34,13 +34,14 @@ export function Dashboard() {
         ]);
         
         setNextMatch(match);
-        setRecentAnalyses(analyses.length > 0 ? analyses : RECENT_ANALYSES);
+        setRecentAnalyses(analyses.length > 0 ? analyses : []);
       } catch (err: any) {
         console.error('Error fetching dashboard data:', err);
         // Fallback to mock data on error
-        setNextMatch(NEXT_MATCH);
-        setRecentAnalyses(RECENT_ANALYSES);
-        setError('Using demo data (API unavailable)');
+        // DO NOT fallback to mock data (per user request)
+        setNextMatch(null);
+        setRecentAnalyses([]);
+        setError('Error: API unavailable. Cannot load live match data.');
       } finally {
         setLoading(false);
       }
@@ -49,8 +50,12 @@ export function Dashboard() {
     fetchData();
   }, []);
 
-  const displayMatch = nextMatch || NEXT_MATCH;
-  const displayAnalyses = recentAnalyses.length > 0 ? recentAnalyses : RECENT_ANALYSES;
+  const displayMatch = nextMatch;
+  const displayAnalyses = recentAnalyses.length > 0 ? recentAnalyses : [];
+
+  if (!displayMatch) {
+    return <div style={{ padding: '24px', color: colors.text }}>Loading tactical dashboard context or failed to connect to API...</div>;
+  }
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px' }}>
@@ -194,7 +199,10 @@ export function Dashboard() {
             {displayAnalyses.map((session, i) => (
               <div
                 key={session.id}
-                onClick={() => navigate('/opponent-analysis')}
+                onClick={() => {
+                  selectMatch(session.id);
+                  navigate('/opponent-analysis');
+                }}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '2fr 80px 80px 100px',

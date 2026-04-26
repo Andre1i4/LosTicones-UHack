@@ -1,6 +1,6 @@
 """Authentication routes (MVP: simple pass-through)"""
 from fastapi import APIRouter
-from models.auth import LoginRequest, LoginResponse
+from ..models.auth import LoginRequest, LoginResponse
 
 router = APIRouter()
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../translations';
-import { NEXT_MATCH, UCLUJ_PLAYERS } from '../data/mockData';
+import { UCLUJ_PLAYERS } from '../data/mockData';
 import { PitchView } from '../components/PitchView';
 import { StatRow } from '../components/StatRow';
 import { FileText, Film, File, Image, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
@@ -33,7 +33,7 @@ const FILE_TYPE_COLOR: Record<Attachment['fileType'], string> = {
 };
 
 export function PlayerAssignments() {
-  const { colors, language, assignments } = useApp();
+  const { colors, language, assignments, currentMatch } = useApp();
   const t = useT(language);
   const [photoError, setPhotoError] = useState(false);
   const [styleExpanded, setStyleExpanded] = useState(true);
@@ -41,8 +41,13 @@ export function PlayerAssignments() {
 
   const myPlayer = UCLUJ_PLAYERS.find(p => p.id === MY_PLAYER_ID)!;
   const myAssignment = assignments.find(a => a.uclujPlayerId === MY_PLAYER_ID);
+
+  if (!currentMatch) {
+    return <div style={{ padding: '40px', color: colors.text }}>Loading assignment data...</div>;
+  }
+
   const assignedOpponent = myAssignment
-    ? NEXT_MATCH.players.find(p => p.id === myAssignment.opponentPlayerId)
+    ? currentMatch.players.find(p => p.id === myAssignment.opponentPlayerId)
     : null;
 
   const imageAttachments = myAssignment?.attachments.filter(a => a.fileType === 'image' && a.dataUrl) ?? [];
@@ -117,7 +122,7 @@ export function PlayerAssignments() {
       >
         {myAssignment ? (
           <PitchView
-            opponentPlayers={NEXT_MATCH.players}
+            opponentPlayers={currentMatch.players}
             uclujPlayers={UCLUJ_PLAYERS}
             assignments={assignments}
             selectedPlayerId={assignedOpponent?.id || null}
@@ -130,7 +135,7 @@ export function PlayerAssignments() {
         ) : (
           <>
             <PitchView
-              opponentPlayers={NEXT_MATCH.players}
+              opponentPlayers={currentMatch.players}
               uclujPlayers={UCLUJ_PLAYERS}
               assignments={[]}
               selectedPlayerId={null}
@@ -271,7 +276,7 @@ export function PlayerAssignments() {
                     {assignedOpponent.name}
                   </p>
                   <p style={{ fontSize: '12px', color: '#DC2626', margin: '0 0 10px', fontWeight: 600 }}>
-                    {NEXT_MATCH.name}
+                    {currentMatch.name}
                   </p>
 
                   {/* Detail grid */}
@@ -321,7 +326,7 @@ export function PlayerAssignments() {
                   {t.strengths}
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  {assignedOpponent.strengths.map(s => (
+                  {assignedOpponent.strengths.map((s: string) => (
                     <span
                       key={s}
                       style={{
@@ -377,7 +382,7 @@ export function PlayerAssignments() {
 
               {styleExpanded && (
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {assignedOpponent.playingStyleNotes.map((note, i) => (
+                  {assignedOpponent.playingStyleNotes.map((note: string, i: number) => (
                     <div
                       key={i}
                       style={{
@@ -460,7 +465,7 @@ export function PlayerAssignments() {
                       marginBottom: otherAttachments.length > 0 ? '8px' : '0',
                     }}
                   >
-                    {imageAttachments.map(att => (
+                    {imageAttachments.map((att: any) => (
                       <div
                         key={att.id}
                         onClick={() => setLightboxSrc(att.dataUrl!)}
@@ -582,7 +587,7 @@ export function PlayerAssignments() {
           </p>
           <p style={{ color: colors.textMuted, fontSize: '12px', margin: 0, lineHeight: 1.65 }}>
             Your coach hasn't sent your matchup assignment yet.<br />
-            Check back closer to match day — <strong style={{ color: colors.text }}>{NEXT_MATCH.matchDate}</strong>.
+            Check back closer to match day — <strong style={{ color: colors.text }}>{currentMatch.matchDate}</strong>.
           </p>
         </div>
       )}
@@ -590,7 +595,7 @@ export function PlayerAssignments() {
       {/* ── Match info footer ── */}
       <div style={{ marginTop: '12px', padding: '10px 0', textAlign: 'center' }}>
         <p style={{ fontSize: '11px', color: colors.textMuted }}>
-          {NEXT_MATCH.matchDate} · {NEXT_MATCH.competition}
+          {currentMatch.matchDate} · {currentMatch.competition}
         </p>
       </div>
 

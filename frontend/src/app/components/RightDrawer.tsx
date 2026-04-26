@@ -1,9 +1,11 @@
 import { X, TrendingUp, BarChart2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../translations';
 import type { OpponentPlayer } from '../data/mockData';
 import { StatRow } from './StatRow';
 import { useNavigate } from 'react-router';
+import { apiClient } from '../../services/api';
 
 interface RightDrawerProps {
   player: OpponentPlayer | null;
@@ -84,6 +86,24 @@ export function RightDrawer({ player, open, onClose, onAssign, isAssigned }: Rig
   const { colors, language, role } = useApp();
   const t = useT(language);
   const navigate = useNavigate();
+  
+  const [aiAnalysis, setAiAnalysis] = useState<string>('');
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  useEffect(() => {
+    if (!player) return;
+    
+    setLoadingAI(true);
+    apiClient.getPlayerAnalysis(player.name)
+      .then(data => {
+        setAiAnalysis(data.analysis || 'Analysis unavailable');
+      })
+      .catch(err => {
+        console.error('Failed to fetch AI analysis:', err);
+        setAiAnalysis('Analysis unavailable at this time');
+      })
+      .finally(() => setLoadingAI(false));
+  }, [player?.id]);
 
   return (
     <div
@@ -214,8 +234,8 @@ export function RightDrawer({ player, open, onClose, onAssign, isAssigned }: Rig
                 ))}
               </div>
 
-              {/* Scout note */}
-              {player.playingStyleNotes && player.playingStyleNotes.length > 0 && (
+              {/* AI Scout note */}
+              {(aiAnalysis || loadingAI) && (
                 <div
                   style={{
                     marginTop: '10px',
@@ -227,13 +247,17 @@ export function RightDrawer({ player, open, onClose, onAssign, isAssigned }: Rig
                   }}
                 >
                   <p style={{ fontSize: '10px', fontWeight: 700, color: colors.gold, letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 6px' }}>
-                    Scout Note
+                    AI Analysis
                   </p>
-                  {player.playingStyleNotes.map((note, i) => (
-                    <p key={i} style={{ fontSize: '12px', color: colors.text, margin: i === 0 ? 0 : '4px 0 0', lineHeight: 1.55, opacity: 0.9 }}>
-                      · {note}
+                  {loadingAI ? (
+                    <p style={{ fontSize: '12px', color: colors.text, margin: 0, lineHeight: 1.55, opacity: 0.7 }}>
+                      Loading analysis...
                     </p>
-                  ))}
+                  ) : (
+                    <p style={{ fontSize: '12px', color: colors.text, margin: 0, lineHeight: 1.55, opacity: 0.9 }}>
+                      {aiAnalysis}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

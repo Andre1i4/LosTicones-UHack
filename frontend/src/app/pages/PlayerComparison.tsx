@@ -11,7 +11,7 @@ import {
   Legend,
 } from 'recharts';
 import { useApp } from '../context/AppContext';
-import { NEXT_MATCH, UCLUJ_PLAYERS } from '../data/mockData';
+import { UCLUJ_PLAYERS } from '../data/mockData';
 import type { UClujPlayer, OpponentPlayer, PlayerStats } from '../data/mockData';
 
 // ─── Position compatibility ──────────────────────────────────────────────────
@@ -313,11 +313,11 @@ function SuggestedCard({
 export function PlayerComparison() {
   const { opponentPlayerId } = useParams<{ opponentPlayerId: string }>();
   const navigate = useNavigate();
-  const { colors, darkMode } = useApp();
+  const { colors, darkMode, currentMatch } = useApp();
 
   const opponentPlayer = useMemo<OpponentPlayer | null>(
-    () => NEXT_MATCH.players.find(p => p.id === opponentPlayerId) ?? null,
-    [opponentPlayerId]
+    () => currentMatch ? currentMatch.players.find(p => p.id === opponentPlayerId) ?? null : null,
+    [opponentPlayerId, currentMatch]
   );
 
   const sortedUCluj = useMemo(() => {
@@ -338,6 +338,10 @@ export function PlayerComparison() {
       p => p.name.toLowerCase().includes(q) || p.position.toLowerCase().includes(q) || String(p.number).includes(q)
     );
   }, [sortedUCluj, search]);
+
+  if (!currentMatch) {
+    return <div style={{ padding: '40px', color: colors.text }}>Loading match data...</div>;
+  }
 
   if (!opponentPlayer) {
     return (
@@ -605,7 +609,7 @@ export function PlayerComparison() {
                   {opponentPlayer.name}
                 </p>
                 <p className="font-[Alexandria]" style={{ margin: 0, fontSize: '12px', color: colors.textMuted }}>
-                  {opponentPlayer.position} · {NEXT_MATCH.name} #{opponentPlayer.number}
+                  {opponentPlayer.position} · {currentMatch.name} #{opponentPlayer.number}
                 </p>
                 <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span className="font-[Alexandria]" style={{ fontSize: '11px', color: colors.textMuted }}>Age {opponentPlayer.age}</span>

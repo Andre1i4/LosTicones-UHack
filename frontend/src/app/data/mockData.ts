@@ -210,24 +210,7 @@ export const RAPID_PLAYERS: OpponentPlayer[] = [
   },
 ];
 
-export const NEXT_MATCH: Opponent = {
-  id: 'rapid',
-  name: 'Rapid București',
-  country: 'Romania',
-  formation: '4-3-3',
-  form: ['W', 'D', 'W', 'L', 'W'],
-  avgPossession: 52,
-  avgGoalsScored: 1.8,
-  avgGoalsConceded: 1.2,
-  avgShotsOnTarget: 4.6,
-  pressingIntensity: 67,
-  setPieceThreat: 'High',
-  coachNote: 'Tănase (#10) is the key link between midfield and attack — must be pressed high. Their right back Iordache pushes aggressively. Watch the left channel when Nică and Lazăr combine. Set pieces conceded: 4 in last 5 — exploit corners early.',
-  dateAnalyzed: 'Apr 25, 2026',
-  competition: 'SuperLiga România',
-  matchDate: 'Mon, 28 Apr 2026 · 20:00',
-  players: RAPID_PLAYERS,
-};
+
 
 export interface RecentAnalysis {
   id: string;
@@ -237,12 +220,3 @@ export interface RecentAnalysis {
   dateAnalyzed: string;
   form: WDL[];
 }
-
-export const RECENT_ANALYSES: RecentAnalysis[] = [
-  { id: 'cfr', opponentName: 'CFR Cluj', country: 'Romania', formation: '4-2-3-1', dateAnalyzed: 'Apr 14, 2026', form: ['W', 'W', 'D', 'W', 'L'] },
-  { id: 'fcsb', opponentName: 'FCSB', country: 'Romania', formation: '4-4-2', dateAnalyzed: 'Apr 7, 2026', form: ['L', 'W', 'W', 'D', 'W'] },
-  { id: 'farul', opponentName: 'Farul Constanța', country: 'Romania', formation: '3-4-3', dateAnalyzed: 'Mar 31, 2026', form: ['W', 'D', 'L', 'W', 'D'] },
-  { id: 'petrolul', opponentName: 'Petrolul Ploiești', country: 'Romania', formation: '4-3-3', dateAnalyzed: 'Mar 24, 2026', form: ['W', 'W', 'W', 'D', 'L'] },
-  { id: 'sepsi', opponentName: 'Sepsi OSK', country: 'Romania', formation: '4-5-1', dateAnalyzed: 'Mar 17, 2026', form: ['D', 'L', 'W', 'W', 'L'] },
-  { id: 'dinamo', opponentName: 'Dinamo București', country: 'Romania', formation: '4-3-3', dateAnalyzed: 'Mar 10, 2026', form: ['W', 'W', 'D', 'L', 'W'] },
-];

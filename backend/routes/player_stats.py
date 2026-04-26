@@ -1,8 +1,8 @@
 """Player stats API routes - serves real BigQuery data"""
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List
-from scripts.fetch_player_stats import PlayerStatsExtractor
-from scripts.analyze_player_ai import PlayerAnalyzer
+from ..scripts.fetch_player_stats import PlayerStatsExtractor
+from ..scripts.analyze_player_ai import PlayerAnalyzer
 
 router = APIRouter()
 extractor = PlayerStatsExtractor()

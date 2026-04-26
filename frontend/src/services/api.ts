@@ -100,6 +100,23 @@ class ApiClient {
   async getMatchDetail(matchId: string): Promise<Match> {
     return this.request<Match>(`/matches/${matchId}`);
   }
+
+  // AI Analysis endpoints
+  async getPlayerAnalysis(playerName: string): Promise<any> {
+    return this.request<any>(`/ai/analyze/${encodeURIComponent(playerName)}`);
+  }
+
+  async comparePlayersAnalysis(player1: string, player2: string): Promise<any> {
+    return this.request<any>(`/ai/compare?player1=${encodeURIComponent(player1)}&player2=${encodeURIComponent(player2)}`);
+  }
+
+  async getMatchAnalysis(matchName: string): Promise<any> {
+    return this.request<any>(`/ai/analyze/${encodeURIComponent(matchName)}`);
+  }
+
+  async getPlayerStats(playerName: string): Promise<any> {
+    return this.request<any>(`/ai/stats/${encodeURIComponent(playerName)}`);
+  }
 }
 
 export const apiClient = new ApiClient();

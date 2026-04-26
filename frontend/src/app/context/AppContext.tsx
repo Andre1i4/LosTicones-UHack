@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiClient } from '../../services/api';
+import type { Match } from '../../services/api';
 
 export type Role = 'coach' | 'player';
 export type Language = 'RO' | 'EN';
@@ -35,6 +37,9 @@ interface AppContextType {
   userName: string;
   loginUser: (name: string, role: Role) => void;
   logout: () => void;
+  currentMatch: Match | null;
+  loadingMatch: boolean;
+  selectMatch: (matchName: string) => Promise<void>;
 }
 
 export interface ColorScheme {
@@ -99,6 +104,9 @@ const defaultContextValue: AppContextType = {
   userName: '',
   loginUser: () => {},
   logout: () => {},
+  currentMatch: null,
+  loadingMatch: true,
+  selectMatch: async () => {},
 };
 
 const AppContext = createContext<AppContextType>(defaultContextValue);
@@ -111,6 +119,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+  const [loadingMatch, setLoadingMatch] = useState(true);
+
+  const selectMatch = async (matchName: string) => {
+    try {
+      setLoadingMatch(true);
+      const match = await apiClient.getMatchDetail(matchName);
+      setCurrentMatch(match);
+      setAssignments([]); // Clear assignments when switching match
+    } catch (err) {
+      console.error('Error fetching match:', err);
+      setCurrentMatch(null);
+    } finally {
+      setLoadingMatch(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchMatch = async () => {
+      try {
+        setLoadingMatch(true);
+        const match = await apiClient.getNextMatch();
+        setCurrentMatch(match);
+      } catch (err) {
+        console.error('Error fetching match:', err);
+        setCurrentMatch(null);
+      } finally {
+        setLoadingMatch(false);
+      }
+    };
+    fetchMatch();
+  }, []);
 
   const addAssignment = (a: Assignment) => {
     setAssignments(prev => {
@@ -152,6 +192,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       userName,
       loginUser,
       logout,
+      currentMatch,
+      loadingMatch,
+      selectMatch,
     }}>
       {children}
     </AppContext.Provider>

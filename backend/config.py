@@ -1,4 +1,11 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
+
+# Set GCP credentials before anything else imports google.cloud
+_creds_path = Path(__file__).parent / "gcp-service-account.json"
+if _creds_path.exists() and not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(_creds_path)
 
 class Settings(BaseSettings):
     """Backend configuration from environment or defaults"""

@@ -4,7 +4,7 @@ No complex dependencies - just FastAPI + requests
 """
 
 from fastapi import APIRouter, HTTPException
-from simple_analyzer import SimplePlayerAnalyzer
+from ..simple_analyzer import SimplePlayerAnalyzer
 
 router = APIRouter()
 

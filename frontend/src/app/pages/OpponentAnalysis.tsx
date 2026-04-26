@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useT } from '../translations';
-import { NEXT_MATCH, UCLUJ_PLAYERS } from '../data/mockData';
+import { UCLUJ_PLAYERS } from '../data/mockData';
 import type { OpponentPlayer } from '../data/mockData';
 import type { Attachment } from '../context/AppContext';
 import { FormRow } from '../components/WDLPill';
@@ -12,9 +12,10 @@ import { RightDrawer } from '../components/RightDrawer';
 import { AssignmentModal } from '../components/AssignmentModal';
 import { SendToPlayersPopover } from '../components/SendToPlayersPopover';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { apiClient } from '../../services/api';
 
 export function OpponentAnalysis() {
-  const { colors, language, role, assignments, addAssignment } = useApp();
+  const { colors, language, role, assignments, addAssignment, currentMatch, loadingMatch } = useApp();
   const t = useT(language);
 
   const [selectedPlayer, setSelectedPlayer] = useState<OpponentPlayer | null>(null);
@@ -22,13 +23,42 @@ export function OpponentAnalysis() {
   const [modalOpen, setModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<OpponentPlayer | null>(null);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(true);
 
   const isCoach = role === 'coach';
+
+  // Fetch AI analysis for the opponent team
+  useEffect(() => {
+    const fetchAnalysis = async () => {
+      if (loadingMatch || !currentMatch) return;
+      try {
+        setLoadingAnalysis(true);
+        const analysis = await apiClient.getMatchAnalysis(currentMatch.name);
+        if (analysis?.analysis) {
+          setAiAnalysis(analysis.analysis);
+        } else {
+          setAiAnalysis(currentMatch.coachNote);
+        }
+      } catch (error) {
+        console.error('Failed to fetch AI analysis:', error);
+        setAiAnalysis(currentMatch.coachNote);
+      } finally {
+        setLoadingAnalysis(false);
+      }
+    };
+
+    fetchAnalysis();
+  }, [currentMatch, loadingMatch]);
 
   const handlePlayerClick = (player: OpponentPlayer) => {
     setSelectedPlayer(player);
     setDrawerOpen(true);
   };
+
+  if (!currentMatch) {
+    return <div style={{ padding: '40px', color: colors.text }}>Loading match data...</div>;
+  }
 
   const handleAssignClick = (player: OpponentPlayer) => {
     setAssignTarget(player);
@@ -82,9 +112,9 @@ export function OpponentAnalysis() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <OpponentCrest name={NEXT_MATCH.name} size={24} />
+              <OpponentCrest name={currentMatch.name} size={24} />
               <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>
-                {NEXT_MATCH.name}
+                {currentMatch.name}
               </span>
             </div>
             {headerCollapsed
@@ -104,12 +134,12 @@ export function OpponentAnalysis() {
                 textAlign: 'center',
               }}
             >
-              <OpponentCrest name={NEXT_MATCH.name} size={56} />
+              <OpponentCrest name={currentMatch.name} size={56} />
               <h2 style={{ fontSize: '16px', fontWeight: 700, color: colors.text, margin: '10px 0 2px' }}>
-                {NEXT_MATCH.name}
+                {currentMatch.name}
               </h2>
               <p style={{ fontSize: '12px', color: colors.textMuted, margin: '0 0 12px' }}>
-                {NEXT_MATCH.country} · {NEXT_MATCH.competition}
+                {currentMatch.country} · {currentMatch.competition}
               </p>
 
               {/* Formation */}
@@ -128,12 +158,12 @@ export function OpponentAnalysis() {
                   {t.formation}
                 </span>
                 <span className="stat-mono" style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>
-                  {NEXT_MATCH.formation}
+                  {currentMatch.formation}
                 </span>
               </div>
 
               {/* Form */}
-              <FormRow form={NEXT_MATCH.form} size="md" />
+              <FormRow form={currentMatch.form} size="md" />
             </div>
           )}
         </div>
@@ -144,13 +174,13 @@ export function OpponentAnalysis() {
             {t.quickStats}
           </p>
 
-          <ProgressStat label={t.avgPossession} value={NEXT_MATCH.avgPossession} color={colors.gold} />
-          <ProgressStat label={t.pressingIntensity} value={NEXT_MATCH.pressingIntensity} color="#DC2626" />
+          <ProgressStat label={t.avgPossession} value={currentMatch.avgPossession} color={colors.gold} />
+          <ProgressStat label={t.pressingIntensity} value={currentMatch.pressingIntensity} color="#DC2626" />
 
           <div style={{ marginTop: '8px' }}>
-            <StatRow label={t.goalsScored} value={NEXT_MATCH.avgGoalsScored.toFixed(1)} unit="/g" compact trend="up" />
-            <StatRow label={t.goalsConceded} value={NEXT_MATCH.avgGoalsConceded.toFixed(1)} unit="/g" compact />
-            <StatRow label={t.avgShotsOnTarget} value={NEXT_MATCH.avgShotsOnTarget.toFixed(1)} unit="/g" compact />
+            <StatRow label={t.goalsScored} value={currentMatch.avgGoalsScored.toFixed(1)} unit="/g" compact trend="up" />
+            <StatRow label={t.goalsConceded} value={currentMatch.avgGoalsConceded.toFixed(1)} unit="/g" compact />
+            <StatRow label={t.avgShotsOnTarget} value={currentMatch.avgShotsOnTarget.toFixed(1)} unit="/g" compact />
           </div>
 
           {/* Set piece threat */}
@@ -167,7 +197,7 @@ export function OpponentAnalysis() {
             }}
           >
             <span className="font-[Sen] text-[12px]" style={{ fontSize: '12px', color: colors.textMuted }}>{t.setPieceThreat}</span>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626' }}>{NEXT_MATCH.setPieceThreat}</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626' }}>{currentMatch.setPieceThreat}</span>
           </div>
         </div>
 
@@ -176,9 +206,15 @@ export function OpponentAnalysis() {
           <p className="font-[Alexandria]" style={{ fontSize: '10px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
             {t.notes}
           </p>
-          <p className="font-[Alexandria] font-normal" style={{ fontSize: '12px', color: colors.text, lineHeight: 1.7, margin: 0 }}>
-            {NEXT_MATCH.coachNote}
-          </p>
+          {loadingAnalysis ? (
+            <p className="font-[Alexandria] font-normal" style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.7, margin: 0 }}>
+              Loading AI analysis...
+            </p>
+          ) : (
+            <p className="font-[Alexandria] font-normal" style={{ fontSize: '12px', color: colors.text, lineHeight: 1.7, margin: 0 }}>
+              {aiAnalysis || currentMatch.coachNote}
+            </p>
+          )}
         </div>
 
         {/* Assignment summary */}
@@ -188,7 +224,7 @@ export function OpponentAnalysis() {
               {assignments.length} {assignments.length === 1 ? 'Assignment' : 'Assignments'} Confirmed
             </p>
             {assignments.map(a => {
-              const opp = NEXT_MATCH.players.find(p => p.id === a.opponentPlayerId);
+              const opp = currentMatch.players.find(p => p.id === a.opponentPlayerId);
               const ucl = UCLUJ_PLAYERS.find(p => p.id === a.uclujPlayerId);
               if (!opp || !ucl) return null;
               return (
@@ -230,7 +266,7 @@ export function OpponentAnalysis() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ fontSize: '12px', color: colors.textMuted }}>
-              {NEXT_MATCH.name} · <strong style={{ color: colors.text }}>{NEXT_MATCH.formation}</strong>
+              {currentMatch.name} · <strong style={{ color: colors.text }}>{currentMatch.formation}</strong>
             </span>
             <span style={{ fontSize: '11px', color: colors.textMuted }}>vs</span>
             <span style={{ fontSize: '12px', color: colors.textMuted }}>
@@ -249,7 +285,7 @@ export function OpponentAnalysis() {
           {/* Pitch */}
           <div style={{ flex: 1, padding: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <PitchView
-              opponentPlayers={NEXT_MATCH.players}
+              opponentPlayers={currentMatch.players}
               uclujPlayers={UCLUJ_PLAYERS}
               assignments={assignments}
               selectedPlayerId={selectedPlayer?.id || null}

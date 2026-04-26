@@ -1,32 +1,36 @@
 import { useApp } from '../context/AppContext';
 import { useT } from '../translations';
-import { NEXT_MATCH, UCLUJ_PLAYERS } from '../data/mockData';
+import { UCLUJ_PLAYERS } from '../data/mockData';
 import { OpponentCrest } from '../components/ClubCrest';
 import { FormRow } from '../components/WDLPill';
 
 export function SquadAssignments() {
-  const { colors, language, assignments, removeAssignment } = useApp();
+  const { colors, language, assignments, removeAssignment, currentMatch } = useApp();
   const t = useT(language);
 
   const unassigned = UCLUJ_PLAYERS.filter(
     p => p.positionShort !== 'GK' && !assignments.some(a => a.uclujPlayerId === p.id)
   );
 
+  if (!currentMatch) {
+    return <div style={{ padding: '40px', color: colors.text }}>Loading match data...</div>;
+  }
+
   return (
     <div style={{ padding: '24px', maxWidth: '900px' }}>
       {/* Header */}
       <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <OpponentCrest name={NEXT_MATCH.name} size={36} />
+        <OpponentCrest name={currentMatch.name} size={36} />
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: colors.text, margin: 0 }}>
             {t.squadAssignments}
           </h2>
           <p style={{ fontSize: '12px', color: colors.textMuted, margin: '2px 0 0' }}>
-            {NEXT_MATCH.name} · {NEXT_MATCH.matchDate}
+            {currentMatch.name} · {currentMatch.matchDate}
           </p>
         </div>
         <div style={{ marginLeft: 'auto' }}>
-          <FormRow form={NEXT_MATCH.form} size="md" />
+          <FormRow form={currentMatch.form} size="md" />
         </div>
       </div>
 
@@ -63,7 +67,7 @@ export function SquadAssignments() {
               }}
             >
               {assignments.map((a, i) => {
-                const opp = NEXT_MATCH.players.find(p => p.id === a.opponentPlayerId);
+                const opp = currentMatch.players.find(p => p.id === a.opponentPlayerId);
                 const ucl = UCLUJ_PLAYERS.find(p => p.id === a.uclujPlayerId);
                 if (!opp || !ucl) return null;
 

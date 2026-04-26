@@ -2,8 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from config import settings
-from routes import health, auth, matches, player_stats, ai_analysis
+from .config import settings
+from .routes import health, auth, matches, ai_analysis
 
 # Create FastAPI app
 app = FastAPI(
@@ -28,7 +28,6 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1
 app.include_router(health.router, tags=["health"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
-app.include_router(player_stats.router, prefix="/api/stats", tags=["player-stats"])
 app.include_router(ai_analysis.router, prefix="/api/ai", tags=["ai-analysis"])
 
 @app.get("/")

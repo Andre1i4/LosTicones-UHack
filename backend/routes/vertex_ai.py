@@ -6,7 +6,7 @@ No mock data - completely real analysis!
 """
 
 from fastapi import APIRouter, HTTPException
-from services.vertex_ai_analyzer import PlayerAnalyzerVertexAI
+from ..services.vertex_ai_analyzer import PlayerAnalyzerVertexAI
 
 router = APIRouter()
 
