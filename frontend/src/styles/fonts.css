@@ -1,0 +1,10 @@
+.ucl-app {
+  font-family: Arial, 'Arial Bold', Helvetica, sans-serif;
+  font-weight: 700;
+}
+
+.stat-mono {
+  font-family: 'Courier New', Courier, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
