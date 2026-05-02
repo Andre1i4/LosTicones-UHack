@@ -246,7 +246,6 @@ Current setup is for local development. For production:
 ## 📝 Next Steps
 
 - [ ] Wire OpponentAnalysis page to backend
-- [ ] Implement player statistics calculations
 - [ ] Add assignment storage (Firestore)
 - [ ] Add real authentication (JWT validation)
 - [ ] Add error boundaries and loading states
